@@ -1,0 +1,9 @@
+.git
+.venv
+data
+processed
+.env
+*.gif
+*.ipynb
+backtrader_plotting
+__pycache__

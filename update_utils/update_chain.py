@@ -1,8 +1,8 @@
 """
 Polymarket CTF Exchange V2 OrderFilled event reader (HyperSync).
 
-Streams OrderFilled logs from the CTF Exchange V2 contract on Polygon via
-Envio's HyperSync and writes them to data/orderFilled.csv with v1-compatible
+Streams OrderFilled logs from the CTF Exchange V2 and the Neg-Risk CTF
+Exchange V2 contracts on Polygon via Envio's HyperSync and writes them to data/orderFilled.csv with v1-compatible
 columns so process_live.py can stay close to its original form:
 
     timestamp, maker, makerAssetId, makerAmountFilled,
@@ -39,6 +39,10 @@ load_dotenv()
 # Polymarket CTF Exchange V2 on Polygon (deployed 2026-03-31).
 # Migration from v1 occurred on 2026-04-28.
 CTF_EXCHANGE_V2 = "0xe111180000d2663c0091e4f400237545b87b996b"
+# Neg-Risk CTF Exchange V2: multi-outcome events (nominations, "next PM", most
+# political markets) fill here instead. Same OrderFilled ABI and topics.
+NEG_RISK_EXCHANGE_V2 = "0xe2222d279d744050d28e00520010520000310f59"
+EXCHANGES_V2 = [CTF_EXCHANGE_V2, NEG_RISK_EXCHANGE_V2]
 V2_GENESIS_BLOCK = 84_902_353
 
 # OrderFilled(bytes32,address,address,uint8,uint256,uint256,uint256,uint256,bytes32,bytes32)
@@ -164,7 +168,7 @@ def _build_query(from_block: int, to_block: int) -> Query:
         to_block=to_block + 1,  # HyperSync to_block is exclusive
         logs=[
             LogSelection(
-                address=[CTF_EXCHANGE_V2],
+                address=EXCHANGES_V2,
                 topics=[[ORDERFILLED_TOPIC]],
             )
         ],

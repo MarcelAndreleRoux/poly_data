@@ -58,7 +58,7 @@ export PROCESS_CHUNK_SIZE=500000           # only if RAM is tight
 `update.py` runs three stages:
 
 1. **Markets** — fetches all markets from the Polymarket **CLOB** API (`/markets`, 1000/page, concurrent) into `data/markets.csv`. Runs to completion first so the full list exists before any trade is processed.
-2. **Chain** — streams `OrderFilled` events from the CTF Exchange V2 contract (`0xE111180000d2663C0091e4f400237545B87B996B`) on Polygon via Envio HyperSync. Resumable from the last scanned block.
+2. **Chain** — streams `OrderFilled` events from the CTF Exchange V2 (`0xE111180000d2663C0091e4f400237545B87B996B`) and the Neg-Risk CTF Exchange V2 (`0xe2222d279d744050d28e00520010520000310F59`, multi-outcome events) contracts on Polygon via Envio HyperSync. Resumable from the last scanned block.
 3. **Process** — joins order events with market metadata to produce labeled trades with price, USD amount, and BUY/SELL direction.
 
 The stages run **sequentially** (markets → chain → process): the complete market list is built first, so every scraped trade can be labeled against it.
@@ -162,7 +162,7 @@ Raw `OrderFilled` events decoded from the chain. Schema:
 | `takerAmountFilled` | Raw integer (6 decimals) |
 | `transactionHash` | Polygon transaction hash |
 
-The v2 `OrderFilled` event natively carries a single `tokenId` + `side` (BUY=0, SELL=1) referring to the maker's order. The reader maps that back to the v1-compatible maker/taker/asset schema above so downstream code stays simple. The CTF Exchange contract address `0xe111180000d2663c0091e4f400237545b87b996b` may appear as `taker` for some events — this is the contract acting as an intermediary for CTF mint/burn flows during cross-side matches; treat it as a sub-event rather than a counterparty.
+The v2 `OrderFilled` event natively carries a single `tokenId` + `side` (BUY=0, SELL=1) referring to the maker's order. The reader maps that back to the v1-compatible maker/taker/asset schema above so downstream code stays simple. Either exchange contract address (`0xe111180000d2663c0091e4f400237545b87b996b` or `0xe2222d279d744050d28e00520010520000310f59`) may appear as `taker` for some events — this is the contract acting as an intermediary for CTF mint/burn flows during cross-side matches; treat it as a sub-event rather than a counterparty.
 
 ### `processed/trades.csv`
 Labeled trades for analysis:

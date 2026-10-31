@@ -1,0 +1,19 @@
+# Background collector for Polymarket v2 trade history (poly_data upstream).
+#   docker compose up -d --build        start / rebuild
+#   docker compose logs -f              watch progress
+#   docker compose down                 stop (data stays in ./data and ./processed)
+services:
+  poly-data:
+    build: .
+    container_name: poly-data
+    env_file: .env
+    environment:
+      PROCESS_CHUNK_SIZE: "500000"   # bound memory during the join (6 GB Docker VM)
+      POLL_INTERVAL_S: "900"         # re-run every 15 min once caught up
+      RETRY_INTERVAL_S: "300"
+    volumes:
+      - ./data:/app/data
+      - ./processed:/app/processed
+    restart: unless-stopped
+    mem_limit: 3g
+    stop_grace_period: 30s

@@ -119,6 +119,14 @@ class TestBuildQuery:
         # to_block is exclusive in HyperSync, so the helper passes to_block + 1.
         q = _build_query(100, 200)
         assert isinstance(q, hypersync.Query)
+        assert q.from_block == 100
+        assert q.to_block == 201
+
+    def test_watches_both_v2_exchanges(self):
+        # neg-risk (multi-outcome) markets fill on a second contract; missing it
+        # silently drops most political markets from the tape
+        q = _build_query(100, 200)
+        assert set(q.logs[0].address) == {uc.CTF_EXCHANGE_V2, uc.NEG_RISK_EXCHANGE_V2}
 
 
 class TestCursor:
